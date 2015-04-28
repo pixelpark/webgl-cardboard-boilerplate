@@ -1,0 +1,11 @@
+Changes to the crosswalk-project in the current example:
+
+OnResume will not restore fullscreen-mode:
+crosswalk-.../template/src/org/xwalk/app/template/AppTemplateActivity.java
+ADDED:
+
+@Override
+    public void onResume() {
+        super.onResume();
+        enterFullscreen();
+    }

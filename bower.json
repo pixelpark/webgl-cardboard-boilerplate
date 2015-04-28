@@ -1,0 +1,27 @@
+{
+  "name": "ar_prototype_solarsystem",
+  "version": "0.0.1",
+  "homepage": "-",
+  "authors": [
+    "markusneuy <markus.neuy@publicispixelpark.de>"
+  ],
+  "main": "index.html",
+  "keywords": [
+    "ar",
+    "augemente",
+    "reality",
+    "pixelpark"
+  ],
+  "license": "-",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "screenfull": "~2.0.0",
+    "threejs": "*"
+  }
+}

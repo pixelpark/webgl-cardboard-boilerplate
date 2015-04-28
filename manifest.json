@@ -1,0 +1,23 @@
+{
+    "name": "AR solarsystem",
+    "xwalk_version": "0.0.0.1",
+    "xwalk_description": "A simple AR-app for android.",
+    "start_url": "index.html",
+    "display": "fullscreen",
+    "orientation" : "landscape",
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "density": "4.0"
+        }
+    ],
+    "xwalk_launch_screen": {
+        "ready_when": "custom",
+        "landscape": {
+            "background_color": "#ffffff",
+            "image": "loading.png"
+        }
+    }
+}

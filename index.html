@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>AR - prototype</title>
+    <link rel="stylesheet" type="text/css" href="./css/main.css">
+    <style>
+
+
+
+    </style>
+  </head>
+  <body>
+    <div class="cam-container" id="leftvideo"></div>
+    <div class="cam-container" id="rightvideo"></div> 
+
+    <div id="webgl"></div>
+
+    <div id="centerline"></div> 
+
+    <script src="bower_components/screenfull/dist/screenfull.js"></script>
+    <script src="bower_components/threejs/build/three.min.js"></script>
+    <script src="js/StereoEffect.js"></script>
+    <script src="js/DeviceOrientationControls.js"></script>
+    <script src="js/navigateControl.js"></script>
+    <script src="js/videosetup.js"></script>
+    <script src="js/arwrapper.js"></script>
+    <script src="js/solarsystem.js"></script>
+    <script>
+      var constants = (function () {
+        var constants = {};
+        var aspect = 3 / 4;
+        constants.__proto__ = null;
+        var actions = {};
+        actions.__proto__ = null;
+        Object.defineProperties(actions, {
+          'makeAR': {
+            value: 'makeAR',
+            enumerable: true
+          },
+          'makeVR': {
+            value: 'makeVR',
+            enumerable: true
+          },
+          'makeReal': {
+            value: 'makeReal',
+            enumerable: true
+          }
+        });
+        Object.defineProperties(constants, {
+          'actions': {
+            value: actions,
+            enumerable: true
+          },
+          'aspect': {
+            value: aspect,
+            enumerable: true
+          },
+          // adjust margin so that we have a 4:3 ratio.
+          // (height - 3/4halfwidth) / 2
+          'verticalMargin': {
+            enumerable: true,
+            get: function () {
+              return (window.innerHeight - ((window.innerWidth / 2) * aspect)) / 2;
+            }
+          }
+        });
+        return constants;
+      })();
+
+
+      clickActions = {};
+      clickActions[constants.actions.makeAR] = function (arWrapper, videoSetup) {
+        arWrapper.show();
+        videoSetup.show();
+      };
+
+      clickActions[constants.actions.makeVR] = function (arWrapper, videoSetup) {
+        arWrapper.show();
+        videoSetup.hide();
+      };
+
+      clickActions[constants.actions.makeReal] = function (arWrapper, videoSetup) {
+        arWrapper.hide();
+        videoSetup.show();
+      };
+
+       /**
+       * Aggregates the handlers for different events.
+       * @returns {undefined}
+       */
+      function init() {
+        var divwebgl = document.getElementById('webgl');
+        var videoleft = document.getElementById("leftvideo");
+        var videoright = document.getElementById("rightvideo");
+
+        var arWrapper = new ARWrapper(constants, divwebgl);
+        var videoSetup = new VideoSetup(constants, videoleft, videoright);
+
+        divwebgl.addEventListener('lookat', function lookAtHandler (e) {
+          if (e.detail.action && clickActions[e.detail.action]) {
+            clickActions[e.detail.action](arWrapper, videoSetup);
+          }
+        }, false);
+        divwebgl.addEventListener('lookaway', function lookAwayHandler (e) {
+          console.log("You looked away from something.");
+        }, false);
+        arWrapper.init();
+        videoSetup.init();
+
+        if (window.screen && window.screen.show) {
+          window.screen.show();
+        } else {
+       /*   document.body.addEventListener('click', function handler() {
+            if (screenfull.enabled) {
+              screenfull.toggle(document.body);
+            }
+            document.body.removeEventListener('click', handler);
+            arWrapper.resizeRenderer();
+            videoSetup.resizeVideo(); // TO BE MASSIVLY IMPROVED!!!!
+          });*/
+          
+          // IT SHOULD BE IN THE BROWSER
+          // ASK FOR FULLSCREEN!!! BUT NOT THIS WAY
+        }
+      }
+
+
+      init();
+
+    </script>
+
+  </body>
+</html>
