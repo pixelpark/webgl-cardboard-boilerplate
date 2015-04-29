@@ -36,7 +36,7 @@
         solarDistanceAU: 0.387,
         orbitalPeriodEY: 0.240846,
         rotationPeriodEY: 58.646 / this.lEarthDaysPerYear,
-        texture: 'images/texture_mercury.jpg',
+        texture: 'images/solarsystem/texture_mercury.jpg',
         segments: 48,
         mesh: null
       },
@@ -46,7 +46,7 @@
         solarDistanceAU: 0.723,
         orbitalPeriodEY: 0.615,
         rotationPeriodEY: -244 / this.lEarthDaysPerYear,
-        texture: 'images/texture_venus_atmosphere.jpg',
+        texture: 'images/solarsystem/texture_venus_atmosphere.jpg',
         segments: 48,
         mesh: null
       },
@@ -56,7 +56,7 @@
         solarDistanceAU: 1,
         orbitalPeriodEY: 1,
         rotationPeriodEY: (1 / this.lEarthDaysPerYear) * 30, //Too fast for comfortable viewing, 30 is slowdown factor
-        texture: 'images/texture_earth_clouds.jpg',
+        texture: 'images/solarsystem/texture_earth_clouds.jpg',
         segments: 64,
         mesh: null,
         moons: [
@@ -66,7 +66,7 @@
             distaneFromPlanetAU: 70 * (1 / 389), // Too close to earth, 70 is exaggeration factor
             orbitalPeriodEY: 0.0748,
             rotationPeriodEY: 0.0748,
-            texture: 'images/texture_moon.jpg',
+            texture: 'images/solarsystem/texture_moon.jpg',
             segments: 48,
             mesh: null
           }
@@ -78,7 +78,7 @@
         solarDistanceAU: 1.38,
         orbitalPeriodEY: 1.88,
         rotationPeriodEY: (1.03 / this.lEarthDaysPerYear) * 15, //Too fast, 10 is slowdown factor
-        texture: 'images/texture_mars.jpg',
+        texture: 'images/solarsystem/texture_mars.jpg',
         segments: 48,
         mesh: null,
         moons: [
@@ -88,7 +88,7 @@
             distaneFromPlanetAU: 1200 * (9380 / 149597871), // Too close, 1400 is exaggeration factor
             orbitalPeriodEY: (0.31891023 / this.lEarthDaysPerYear) * 50, //Too fast, 50 is slowdown factor
             rotationPeriodEY: (0.31891023 / this.lEarthDaysPerYear) * 50,
-            //texture: 'images/texture_moon.jpg',
+            //texture: 'images/solarsystem/texture_moon.jpg',
             segments: 32,
             mesh: null
           },
@@ -98,7 +98,7 @@
             distaneFromPlanetAU: 1200 * (23460 / 149597871), // Too close, 1400 is exaggeration factor
             orbitalPeriodEY: (1.263 / this.lEarthDaysPerYear) * 50, //Too fast, 50 is slowdown factor
             rotationPeriodEY: 0.01,
-            //texture: 'images/texture_moon.jpg',
+            //texture: 'images/solarsystem/texture_moon.jpg',
             segments: 16,
             mesh: null
           }
@@ -110,7 +110,7 @@
         solarDistanceAU: 4.95,
         orbitalPeriodEY: 11.9,
         rotationPeriodEY: (0.415 / this.lEarthDaysPerYear) * 100, //Too fast, 100 is slowdown factor
-        texture: 'images/texture_jupiter.jpg',
+        texture: 'images/solarsystem/texture_jupiter.jpg',
         segments: 64,
         mesh: null,
         moons: [
@@ -120,7 +120,7 @@
             distaneFromPlanetAU: (421700 / 149597871) * 140, // Too close, 120 is exaggeration factor
             orbitalPeriodEY: (1.7691 / this.lEarthDaysPerYear) * 20, //Too fast, 20 is slowdown factor
             rotationPeriodEY: 0.2,
-            texture: 'images/texture_io.jpg',
+            texture: 'images/solarsystem/texture_io.jpg',
             segments: 32,
             mesh: null
           },
@@ -130,7 +130,7 @@
             distaneFromPlanetAU: (670900 / 149597871) * 140, // Too close, 120 is exaggeration factor
             orbitalPeriodEY: (3.551 / this.lEarthDaysPerYear) * 20, //Too fast, 20 is slowdown factor
             rotationPeriodEY: 0.2,
-            texture: 'images/texture_europa.jpg',
+            texture: 'images/solarsystem/texture_europa.jpg',
             segments: 32,
             mesh: null
           },
@@ -140,7 +140,7 @@
             distaneFromPlanetAU: (1070412 / 149597871) * 140, // Too close, 120 is exaggeration factor
             orbitalPeriodEY: (7.154 / this.lEarthDaysPerYear) * 20, //Too fast, 20 is slowdown factor
             rotationPeriodEY: 0.2,
-            texture: 'images/texture_ganymede.jpg',
+            texture: 'images/solarsystem/texture_ganymede.jpg',
             segments: 32,
             mesh: null
           },
@@ -150,7 +150,7 @@
             distaneFromPlanetAU: (1882709 / 149597871) * 140, // Too close, 120 is exaggeration factor
             orbitalPeriodEY: (16.689 / this.lEarthDaysPerYear) * 20, //Too fast, 20 is slowdown factor
             rotationPeriodEY: 0.2,
-            texture: 'images/texture_callisto.jpg',
+            texture: 'images/solarsystem/texture_callisto.jpg',
             segments: 32,
             mesh: null
           }
@@ -162,14 +162,14 @@
         solarDistanceAU: 9.58,
         orbitalPeriodEY: 29.4,
         rotationPeriodEY: (0.445 / this.lEarthDaysPerYear) * 100, //Too fast, 100 is slowdown factor
-        texture: 'images/texture_saturn.jpg',
+        texture: 'images/solarsystem/texture_saturn.jpg',
         segments: 64,
         mesh: null,
         ring: {
           innerRadius: 7500 * 1.6,
           outerRadius: 7500 * 2.5,
           inclination: (Math.PI / 12), // not too much, otherwise doesn't look nice
-          texture: 'images/texture_saturn_ring.png',
+          texture: 'images/solarsystem/texture_saturn_ring.png',
           mesh: null
         },
         moons: [
@@ -179,7 +179,7 @@
             distaneFromPlanetAU: (1221870 / 149597871) * 250, // Too close, 250 is exaggeration factor
             orbitalPeriodEY: (16 / this.lEarthDaysPerYear) * 10, //Too fast, 50 is slowdown factor
             rotationPeriodEY: 0.1,
-            //texture: 'images/texture_moon.jpg',
+            //texture: 'images/solarsystem/texture_moon.jpg',
             segments: 32,
             mesh: null
           },
@@ -189,7 +189,7 @@
             distaneFromPlanetAU: (527108 / 149597871) * 250, // Too close, 250 is exaggeration factor
             orbitalPeriodEY: (4.5 / this.lEarthDaysPerYear) * 10, //Too fast, 50 is slowdown factor
             rotationPeriodEY: 0.1,
-            //texture: 'images/texture_moon.jpg',
+            //texture: 'images/solarsystem/texture_moon.jpg',
             segments: 16,
             mesh: null
           }
@@ -201,7 +201,7 @@
            distaneFromPlanetAU: (3560820 / 149597871) * 250,  // Too close, 250 is exaggeration factor
            orbitalPeriodEY: (79 / lEarthDaysPerYear) * 10, //Too fast, 50 is slowdown factor
            rotationPeriodEY: 0.1,
-           //texture: 'images/texture_moon.jpg',
+           //texture: 'images/solarsystem/texture_moon.jpg',
            segments: 16,
            mesh: null
            }
@@ -214,14 +214,14 @@
         solarDistanceAU: 19.20,
         orbitalPeriodEY: 83.7,
         rotationPeriodEY: (-0.720 / this.lEarthDaysPerYear) * 100, //Too fast, 100 is slowdown factor
-        texture: 'images/texture_uranus.jpg',
+        texture: 'images/solarsystem/texture_uranus.jpg',
         segments: 64,
         mesh: null,
         ring: {
           innerRadius: 8000 * 2.0,
           outerRadius: 8000 * 2.01,
           inclination: (Math.PI / 2),
-          //texture: 'images/texture_uranus_ring.png',
+          //texture: 'images/solarsystem/texture_uranus_ring.png',
           mesh: null
         },
         moons: [
@@ -233,7 +233,7 @@
         solarDistanceAU: 30.05,
         orbitalPeriodEY: 163.7,
         rotationPeriodEY: (0.673 / this.lEarthDaysPerYear) * 100, //Too fast, 100 is slowdown factor,
-        texture: 'images/texture_neptune.jpg',
+        texture: 'images/solarsystem/texture_neptune.jpg',
         segments: 64,
         mesh: null,
         moons: [
@@ -278,7 +278,7 @@
 
       var sunGeometry = new THREE.SphereGeometry(this.sunRadius, 48, 48);
       var sunMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
-      sunMaterial.map = THREE.ImageUtils.loadTexture('images/texture_sun.jpg');
+      sunMaterial.map = THREE.ImageUtils.loadTexture('images/solarsystem/texture_sun.jpg');
       this.sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
       this.sunMesh.position.x = this.orrerySunPosition.x; // forward
       this.sunMesh.position.y = this.orrerySunPosition.y; // up

@@ -258,12 +258,16 @@ var ARWrapper = (function () {
     var verticalMargin = this.constants.verticalMargin;
 
     // the constant has to be inverted .... :(
-    this.camera.aspect = 1 / this.constants.aspect;
+    // and doubled because the the aspect is calculated for a single view
+    this.camera.aspect = 2 * (1 / this.constants.aspect);
+    
+    //this.camera.aspect = 1 / this.constants.aspect;
     this.camera.updateProjectionMatrix();
 
     this.divwebgl.style.top = verticalMargin + 'px';
     this.renderer.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
-    this.effect.setSizeSingleView(screenHalfWidth, (screenHeight - (2 * verticalMargin)));
+    this.effect.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
+   // this.effect.setSizeSingleView(screenHalfWidth, (screenHeight - (2 * verticalMargin)));
   };
 
   ARWrapper.prototype.setControls = function () {

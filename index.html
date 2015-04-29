@@ -20,13 +20,17 @@
     <div id="centerline"></div> 
 
     <script src="bower_components/screenfull/dist/screenfull.js"></script>
-    <script src="bower_components/threejs/build/three.min.js"></script>
-    <script src="js/StereoEffect.js"></script>
+    <!-- <script src="bower_components/threejs/build/three.min.js"></script>-->
+    <script src="js/three.min.js"></script>
+    <script src="bower_components/threejs/examples/js/effects/StereoEffect.js"></script>
+    <!--<script src="js/StereoEffect.js"></script>-->
     <script src="js/DeviceOrientationControls.js"></script>
+    <!--<script src="bower_components/threejs/examples/js/controls/DeviceOrientationControls.js"></script>-->
     <script src="js/navigateControl.js"></script>
     <script src="js/videosetup.js"></script>
     <script src="js/arwrapper.js"></script>
     <script src="js/solarsystem.js"></script>
+    <!--<script src="js/testest.js"></script> uncomment to see another example-->
     <script>
       var constants = (function () {
         var constants = {};
@@ -64,6 +68,16 @@
             get: function () {
               return (window.innerHeight - ((window.innerWidth / 2) * aspect)) / 2;
             }
+          },
+          'videoWidth': {
+            value: 640,
+            enumerable: true
+          },
+          'videoHeight': {
+            enumerable: true,
+            get: function () {
+              return this.videoWidth * this.aspect;
+            }
           }
         });
         return constants;
@@ -86,8 +100,31 @@
         videoSetup.show();
       };
 
-       /**
-       * Aggregates the handlers for different events.
+      function addFullscreenButton() {
+        if (screenfull.enabled) {
+          var fsButton = document.createElement('button');
+          fsButton.textContent = 'fullscreen';
+          fsButton.style.maxHeight = constants.verticalMargin + 'px';
+
+          fsButton.id = 'fullscreen-button';
+          fsButton.addEventListener('click', function () {
+            screenfull.request(document.body);
+          });
+
+          window.addEventListener(screenfull.raw.fullscreenchange, (function () {
+            if (screenfull.isFullscreen) {
+              fsButton.style.display = 'none';
+            } else {
+              fsButton.style.display = 'inline-block';
+            }
+          }).bind(fsButton), false);
+
+          document.body.appendChild(fsButton);
+        }
+      }
+
+      /**
+       * Initialises objects and event-listners
        * @returns {undefined}
        */
       function init() {
@@ -98,33 +135,24 @@
         var arWrapper = new ARWrapper(constants, divwebgl);
         var videoSetup = new VideoSetup(constants, videoleft, videoright);
 
-        divwebgl.addEventListener('lookat', function lookAtHandler (e) {
+        divwebgl.addEventListener('lookat', function lookAtHandler(e) {
           if (e.detail.action && clickActions[e.detail.action]) {
             clickActions[e.detail.action](arWrapper, videoSetup);
           }
         }, false);
-        divwebgl.addEventListener('lookaway', function lookAwayHandler (e) {
+        divwebgl.addEventListener('lookaway', function lookAwayHandler(e) {
           console.log("You looked away from something.");
         }, false);
         arWrapper.init();
         videoSetup.init();
 
         if (window.screen && window.screen.show) {
-          window.screen.show();
+          window.screen.show(); // crosswalk - load-screen
         } else {
-       /*   document.body.addEventListener('click', function handler() {
-            if (screenfull.enabled) {
-              screenfull.toggle(document.body);
-            }
-            document.body.removeEventListener('click', handler);
-            arWrapper.resizeRenderer();
-            videoSetup.resizeVideo(); // TO BE MASSIVLY IMPROVED!!!!
-          });*/
-          
-          // IT SHOULD BE IN THE BROWSER
-          // ASK FOR FULLSCREEN!!! BUT NOT THIS WAY
+          addFullscreenButton();
         }
       }
+
 
 
       init();

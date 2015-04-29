@@ -5,7 +5,10 @@ var VideoSetup = (function () {
     this.videorightcontainer = videorightcontainer;
     this.videoright = null;
     this.videoleft = null;
+    this.leftcontainer = null
+    this.rightcontainer = null;
     this.videoPlaying = false;
+    this.videoSupport = false;
     this.resizeTimeout = null;
     this.constants = constants;
   }
@@ -15,23 +18,20 @@ var VideoSetup = (function () {
     this.videoleftcontainer.style.top = verticalMargin + 'px';
     this.videorightcontainer.style.top = verticalMargin + 'px';
   };
+  
+  VideoSetup.prototype.configVideoElement = function (videoElement, id, streamSrc) {
+      videoElement.autoplay = true;
+      videoElement.width = this.constants.videoWidth;
+      videoElement.height = this.constants.videoHeight;
+      videoElement.id = id;
+      videoElement.src = streamSrc;
+      videoElement.play();
+      return videoElement;
+  };
 
   VideoSetup.prototype.getVideoStream = function (leftcontainer, rightcontainer) {
-    // @TODO: some repeated code ....do not do so
-    this.videoleft = document.createElement('video');
-    this.videoleft.autoplay = true;
-    this.videoleft.width = 640;
-    this.videoleft.height = 480;
-    this.videoleft.id = 'videoleft';
-    leftcontainer.appendChild(this.videoleft);
-
-    this.videoright = document.createElement('video');
-    this.videoright.autoplay = true;
-    this.videoright.width = 640;
-    this.videoright.height = 480;
-    this.videoright.id = 'videoright';
-    rightcontainer.appendChild(this.videoright);
-
+    this.leftcontainer = leftcontainer;
+    this.rightcontainer = rightcontainer;
 
     var getUserMedia = navigator.getUserMedia ? function (a, b, c) {
       navigator.getUserMedia(a, b, c);
@@ -58,34 +58,43 @@ var VideoSetup = (function () {
                     video: {
                       optional: [
                         {sourceId: videoSource},
-                        {minWidth: 640},
-                        {maxWidth: 640},
-                        {minHeight: 480},
-                        {maxHeight: 480}
+                        {minWidth: this.constants.videoWidth},
+                        {maxWidth: this.constants.videoWidth},
+                        {minHeight: this.constants.videoHeight},
+                        {maxHeight: this.constants.videoHeight}
                       ]
                     },
                     //video: true, 
                     audio: false
                   },
-          (function (stream) {
-            this.videoleft.src = window.URL.createObjectURL(stream);
-            this.videoleft.play();
-            this.videoright.src = window.URL.createObjectURL(stream);
-            this.videoright.play();
-            this.videoPlaying = true;
-            window.dispatchEvent(new Event('resize'));
-            console.log("Video setup ok");
-          }).bind(this),
+                  (function (stream) {
+                    
+                    var urlStream = window.URL.createObjectURL(stream);
+                    this.videoleft = document.createElement('video');
+                    this.leftcontainer.appendChild(this.videoleft);
+                    this.videoleft = this.configVideoElement(this.videoleft, 'videoleft', urlStream);
+                    
+                    this.videoright = document.createElement('video');
+                    this.rightcontainer.appendChild(this.videoright);
+                    this.videoright = this.configVideoElement(this.videoright, 'videoright', urlStream);
+                    
+                    this.videoPlaying = true;
+                    this.videoSupport = true;
+                    window.dispatchEvent(new Event('resize'));
+                    console.log("Video setup ok");
+                  }).bind(this),
                   (function (error) {
-                    this.videoPlaying = false;
+                    this.videoSupport = false;
                     console.log('Video capture disabled');
                   }).bind(this)
                   );
         } else {
+          this.videoSupport = false;
           console.log("Video capture not available");
         }
       }).bind(this));
     } else {
+      this.videoSupport = false;
       console.log("HTML5 video not supported");
     }
   };
@@ -104,7 +113,8 @@ var VideoSetup = (function () {
   };
 
   VideoSetup.prototype.show = function () {
-    if (this.videoleft && this.videoright) {
+    if (this.videoleft && this.videoright && this.videoSupport) {
+      this.videoPlaying = true;
       this.videoleft.play();
       this.videoleft.style.display = 'block';
       this.videoright.play();
@@ -113,7 +123,7 @@ var VideoSetup = (function () {
   };
 
   VideoSetup.prototype.hide = function () {
-    if (this.videoleft && this.videoright) {
+    if (this.videoleft && this.videoright && this.videoSupport) {
       this.videoPlaying = false;
       this.videoleft.pause();
       this.videoleft.style.display = 'none';
