@@ -42,6 +42,7 @@
          * these can be used for configuration before starting
          * the app 
          */
+        var centerline = document.getElementById('centerline');
         var constants = (function () {
           var constants = {};
           var aspect = 3 / 4;
@@ -59,6 +60,14 @@
             },
             'makeReal': {
               value: 'action_makeReal',
+              enumerable: true
+            },
+            'cardboard': {
+              value: 'action_cardboard',
+              enumerable: true
+            },
+            'fullscreen': {
+              value: 'action_fullscreen',
               enumerable: true
             }
           });
@@ -113,6 +122,20 @@
         clickActions[constants.actions.makeReal] = function (arWrapper, videoSetup) {
           arWrapper.hide();
           videoSetup.show();
+        };
+        
+        //just show virtual parts with a black background
+        clickActions[constants.actions.fullscreen] = function (arWrapper, videoSetup) {
+          centerline.style.display = 'none';
+          videoSetup.setFullscreen(true);
+          arWrapper.setFullscreen(true);
+        };
+        
+        //just show virtual parts with a black background
+        clickActions[constants.actions.cardboard] = function (arWrapper, videoSetup) {
+          centerline.style.display = 'block';
+          videoSetup.setFullscreen(false);
+          arWrapper.setFullscreen(false);
         };
 
         /**

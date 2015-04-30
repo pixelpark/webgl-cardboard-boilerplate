@@ -4,7 +4,7 @@
  * @type Function|undefined
  */
 var VideoSetup = (function () {
-  
+
   /**
    * Initialised mostly empty values
    * @param {type} constants
@@ -23,8 +23,15 @@ var VideoSetup = (function () {
     this.videoSupport = false;
     this.resizeTimeout = null;
     this.constants = constants;
+    
+    this.originalVideoWidth = 0;
+    this.fullscreen = false;
+    this.videoLoaded = {
+      left : false,
+      right: false
+    };
   }
-  
+
   /**
    * will be called when resizing the window
    * just puts the both video to their correct position
@@ -32,27 +39,54 @@ var VideoSetup = (function () {
    * @returns {undefined}
    */
   VideoSetup.prototype.resizeVideo = function () {
-    var verticalMargin = this.constants.verticalMargin;
-    this.videoleftcontainer.style.top = verticalMargin + 'px';
-    this.videorightcontainer.style.top = verticalMargin + 'px';
+    if (this.videoLoaded.left && this.videoLoaded.right) {
+      this.resizeSingleVideo(this.videoleft, this.videoleftcontainer);
+      this.resizeSingleVideo(this.videoright, this.videorightcontainer);
+    }
   };
   
+  VideoSetup.prototype.resizeSingleVideo = function (videoElement, container) {
+    if (this.originalVideoWidth > 0) {
+      var width = this.originalVideoWidth / 2;
+      if (this.fullscreen) {
+        width = this.originalVideoWidth;
+      }
+      
+      videoElement.style.width = width + 'px';
+      var height = videoElement.clientHeight;
+      var offsetWidth = (container.clientWidth - width) / 2;
+      var offsetHeight = (container.clientHeight - height) / 2;
+      videoElement.style.left = offsetWidth + 'px';
+      videoElement.style.top = offsetHeight + 'px';
+    }
+    var verticalMargin = this.constants.verticalMargin;
+    if (this.fullscreen) {
+      verticalMargin = 0;
+    }
+    container.style.top = verticalMargin + 'px';
+  };
+
   /**
    * Creates and returns a video-elements
    * one for the left and one for the right eye
    * @param {type} streamSrc
    * @returns {Element|videosetup_L6.VideoSetup.prototype.configVideoElement.videoElement}
    */
-  VideoSetup.prototype.configVideoElement = function (streamSrc) {
-      var videoElement = document.createElement('video');
-      videoElement.autoplay = true;
-      videoElement.width = this.constants.videoWidth;
-      videoElement.height = this.constants.videoHeight;
-      videoElement.src = streamSrc;
-      videoElement.play();
-      return videoElement;
+  VideoSetup.prototype.configVideoElement = function (streamSrc, container, site) {
+    var videoElement = document.createElement('video');
+    videoElement.autoplay = true;
+    videoElement.src = streamSrc;
+    videoElement.play();
+    videoElement.addEventListener('loadedmetadata', function (e) {
+      this.originalVideoWidth = e.target.clientWidth;
+      this.videoLoaded[site] = true;
+      this.resizeVideo(e.target, e.target.parentElement);
+    }.bind(this));
+
+    container.appendChild(videoElement);
+    return videoElement;
   };
-  
+
   /**
    * Get the video stream running and create both video-elements
    * @param {type} leftcontainer
@@ -87,30 +121,28 @@ var VideoSetup = (function () {
                   {
                     video: {
                       optional: [
-                        {sourceId: videoSource},
-                        {minWidth: this.constants.videoWidth},
-                        {maxWidth: this.constants.videoWidth},
-                        {minHeight: this.constants.videoHeight},
-                        {maxHeight: this.constants.videoHeight}
+                        {sourceId: videoSource}/*,
+                         {minWidth: this.constants.videoWidth},
+                         {maxWidth: this.constants.videoWidth},
+                         {minHeight: this.constants.videoHeight},
+                         {maxHeight: this.constants.videoHeight}*/
                       ]
                     },
                     //video: true, 
                     audio: false
                   },
-                  (function (stream) {
-                    
-                    var urlStream = window.URL.createObjectURL(stream);
-                    this.videoleft = this.configVideoElement(urlStream);
-                    this.leftcontainer.appendChild(this.videoleft);
-                    
-                    this.videoright = this.configVideoElement(urlStream);
-                    this.rightcontainer.appendChild(this.videoright);
-                    
-                    this.videoPlaying = true;
-                    this.videoSupport = true;
-                    window.dispatchEvent(new Event('resize'));
-                    console.log("Video setup ok");
-                  }).bind(this),
+          (function (stream) {
+
+            var urlStream = window.URL.createObjectURL(stream);
+            this.videoleft = this.configVideoElement(urlStream, this.leftcontainer, 'left');
+
+            this.videoright = this.configVideoElement(urlStream, this.rightcontainer, 'right');
+
+            this.videoPlaying = true;
+            this.videoSupport = true;
+            window.dispatchEvent(new Event('resize'));
+            console.log("Video setup ok");
+          }).bind(this),
                   (function (error) {
                     this.videoSupport = false;
                     console.log('Video capture disabled');
@@ -142,7 +174,7 @@ var VideoSetup = (function () {
       this.resizeTimeout = window.setTimeout(this.resizeVideo.bind(this), 100);
     }).bind(this), false);
   };
-  
+
   /**
    * Shows the video and therefor the "reality"
    */
@@ -155,7 +187,7 @@ var VideoSetup = (function () {
       this.videoright.style.display = 'block';
     }
   };
-  
+
   /**
    * Hides the "reality"
    */
@@ -166,6 +198,24 @@ var VideoSetup = (function () {
       this.videoleft.style.display = 'none';
       this.videoright.pause();
       this.videoright.style.display = 'none';
+    }
+  };
+
+  VideoSetup.prototype.setFullscreen = function (fullscreen) {
+    if (this.videoleft && this.videoright && this.videoSupport) {
+      if (fullscreen) {
+        this.videorightcontainer.style.display = 'none';
+        this.videoleftcontainer.style.width = '100%';
+        this.videoleft.style.width = this.originalVideoWidth + 'px';
+        this.fullscreen = true;
+        this.resizeVideo();
+      } else {
+        this.videorightcontainer.style.display = 'block';
+        this.videoleftcontainer.style.width = '50%';
+        this.videoleft.style.width = (this.originalVideoWidth/2) + 'px';
+        this.fullscreen = false;
+        this.resizeVideo();
+      }
     }
   };
 

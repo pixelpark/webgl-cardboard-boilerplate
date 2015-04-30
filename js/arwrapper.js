@@ -114,12 +114,15 @@ var ARWrapper = (function () {
     this.focusObject = null;
     this.resizeTimeout = null;
     this.lookAtCounter = 0;
+    this.fullscreen = false;
 
     this.constants = constants;
 
     this.renderer = new THREE.WebGLRenderer({antialias: true, alpha: true});
     this.renderer.setClearColor(0x000000, 0);
     this.effect = new THREE.StereoEffect(this.renderer);
+    this.effect.focalLength = 2000;
+    this.currentRenderer = this.effect;
     this.divwebgl.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.PerspectiveCamera(40, 1, 100, 10000000);
@@ -140,6 +143,21 @@ var ARWrapper = (function () {
       this.scenes.push(new window.scenes[i]());
     }
   }
+  
+  ARWrapper.prototype.setFullscreen = function (fullscreen) {
+    this.fullscreen = fullscreen;
+    if (fullscreen) {
+      var width = this.renderer.domElement.offsetWidth;
+      var height = this.renderer.domElement.offsetHeight;
+      this.currentRenderer = this.renderer;
+      this.currentRenderer.setScissor( 0, 0, width, height );
+      this.currentRenderer.setViewport( 0, 0, width, height );
+      this.resizeRenderer();
+    } else {
+      this.currentRenderer = this.effect;
+      this.resizeRenderer();
+    }
+  };
 
   /**
    * Show all objects that have been marked before
@@ -159,6 +177,7 @@ var ARWrapper = (function () {
 
   /**
    * Toggle show/hide-status of all objects that have been marked beforehand
+   * @TODO toggle is not realy the correct word
    * @param {type} visible
    * @returns {undefined}
    */
@@ -193,8 +212,8 @@ var ARWrapper = (function () {
               baseImagePath: 'images/buttons/ar.png',
               activeImagePath: 'images/buttons/ar_active.png',
               dimensions: {
-                x: 10000,
-                y: 10000
+                x: 8000,
+                y: 8000
               },
               position: {
                 x: -11000,
@@ -218,8 +237,8 @@ var ARWrapper = (function () {
       baseImagePath: 'images/buttons/vr.png',
       activeImagePath: 'images/buttons/vr_active.png',
       dimensions: {
-        x: 10000,
-        y: 10000
+        x: 8000,
+        y: 8000
       },
       position: {
         x: 11000,
@@ -243,12 +262,63 @@ var ARWrapper = (function () {
       baseImagePath: 'images/buttons/real.png',
       activeImagePath: 'images/buttons/real_active.png',
       dimensions: {
-        x: 10000,
-        y: 10000
+        x: 8000,
+        y: 8000
       },
       position: {
         y: -20000,
         z: 10000
+      },
+      rotation: {
+        x: -Math.PI / 2,
+        z: Math.PI
+      },
+      callback: (function (mesh) {
+        focusableObjects.push(mesh);
+        this.scene.add(mesh);
+      }).bind(this)
+    });
+    
+    
+    this.buttonFactory.create({
+      name: 'FULLSCREEN',
+      action: this.constants.actions.fullscreen,
+      color: 0xcccccc,
+      baseImagePath: 'images/buttons/fullscreen.png',
+      activeImagePath: 'images/buttons/fullscreen_active.png',
+      dimensions: {
+        x: 8000,
+        y: 8000
+      },
+      position: {
+        x : 5000,
+        y: -20000,
+        z: 1000
+      },
+      rotation: {
+        x: -Math.PI / 2,
+        z: Math.PI
+      },
+      callback: (function (mesh) {
+        focusableObjects.push(mesh);
+        this.scene.add(mesh);
+      }).bind(this)
+    });
+    
+    this.buttonFactory.create({
+      name: 'REALITYBUTTON',
+      action: this.constants.actions.cardboard,
+      color: 0xcccccc,
+      baseImagePath: 'images/buttons/cardboard.png',
+      activeImagePath: 'images/buttons/cardboard.png',
+      dimensions: {
+        x: 8000,
+        y: 8000
+      },
+      position: {
+        x : -5000,
+        y: -20000,
+        z: 1000
       },
       rotation: {
         x: -Math.PI / 2,
@@ -291,17 +361,23 @@ var ARWrapper = (function () {
     //var screenHalfWidth = ((screenWidth / 2) | 0);
     // adjust margin so that we have a 4:3 ratio.
     verticalMargin = this.constants.verticalMargin;
+    this.camera.aspect = 2 * (1 / this.constants.aspect);
 
+    if (this.fullscreen) {
+      verticalMargin = 0;
+      this.camera.aspect = screenWidth / screenHeight;
+    }
     // the constant has to be inverted .... :(
     // and doubled because the the aspect is calculated for a single view
-    this.camera.aspect = 2 * (1 / this.constants.aspect);
+    
 
     //this.camera.aspect = 1 / this.constants.aspect;
     this.camera.updateProjectionMatrix();
 
     this.divwebgl.style.top = verticalMargin + 'px';
-    this.renderer.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
-    this.effect.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
+    this.currentRenderer.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
+    //this.renderer.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
+    //this.effect.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
     // this.effect.setSizeSingleView(screenHalfWidth, (screenHeight - (2 * verticalMargin)));
   };
 
@@ -388,7 +464,9 @@ var ARWrapper = (function () {
     this.camera.updateProjectionMatrix();
     this.controls.update(this.clock.getDelta());
 
-    this.effect.render(this.scene, this.camera);
+// this.renderer.render(this.scene, this.camera);
+    //this.effect.render(this.scene, this.camera);
+    this.currentRenderer.render(this.scene, this.camera);
 
     var lTimeSec = this.clock.getElapsedTime();
 
