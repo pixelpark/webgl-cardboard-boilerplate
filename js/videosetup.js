@@ -1,34 +1,64 @@
+/**
+ * A constructor function that leads to an objects that will setup the video-context
+ * of the ar-app
+ * @type Function|undefined
+ */
 var VideoSetup = (function () {
-
+  
+  /**
+   * Initialised mostly empty values
+   * @param {type} constants
+   * @param {type} videoleftcontainer
+   * @param {type} videorightcontainer
+   * @returns {videosetup_L6.VideoSetup}
+   */
   function VideoSetup(constants, videoleftcontainer, videorightcontainer) {
     this.videoleftcontainer = videoleftcontainer; // RENAME!!! NAMES ARE TOO LONG!!
     this.videorightcontainer = videorightcontainer;
     this.videoright = null;
     this.videoleft = null;
-    this.leftcontainer = null
+    this.leftcontainer = null;
     this.rightcontainer = null;
     this.videoPlaying = false;
     this.videoSupport = false;
     this.resizeTimeout = null;
     this.constants = constants;
   }
-
+  
+  /**
+   * will be called when resizing the window
+   * just puts the both video to their correct position
+   * for the actual size see css-files
+   * @returns {undefined}
+   */
   VideoSetup.prototype.resizeVideo = function () {
     var verticalMargin = this.constants.verticalMargin;
     this.videoleftcontainer.style.top = verticalMargin + 'px';
     this.videorightcontainer.style.top = verticalMargin + 'px';
   };
   
-  VideoSetup.prototype.configVideoElement = function (videoElement, id, streamSrc) {
+  /**
+   * Creates and returns a video-elements
+   * one for the left and one for the right eye
+   * @param {type} streamSrc
+   * @returns {Element|videosetup_L6.VideoSetup.prototype.configVideoElement.videoElement}
+   */
+  VideoSetup.prototype.configVideoElement = function (streamSrc) {
+      var videoElement = document.createElement('video');
       videoElement.autoplay = true;
       videoElement.width = this.constants.videoWidth;
       videoElement.height = this.constants.videoHeight;
-      videoElement.id = id;
       videoElement.src = streamSrc;
       videoElement.play();
       return videoElement;
   };
-
+  
+  /**
+   * Get the video stream running and create both video-elements
+   * @param {type} leftcontainer
+   * @param {type} rightcontainer
+   * @returns {undefined}
+   */
   VideoSetup.prototype.getVideoStream = function (leftcontainer, rightcontainer) {
     this.leftcontainer = leftcontainer;
     this.rightcontainer = rightcontainer;
@@ -70,13 +100,11 @@ var VideoSetup = (function () {
                   (function (stream) {
                     
                     var urlStream = window.URL.createObjectURL(stream);
-                    this.videoleft = document.createElement('video');
+                    this.videoleft = this.configVideoElement(urlStream);
                     this.leftcontainer.appendChild(this.videoleft);
-                    this.videoleft = this.configVideoElement(this.videoleft, 'videoleft', urlStream);
                     
-                    this.videoright = document.createElement('video');
+                    this.videoright = this.configVideoElement(urlStream);
                     this.rightcontainer.appendChild(this.videoright);
-                    this.videoright = this.configVideoElement(this.videoright, 'videoright', urlStream);
                     
                     this.videoPlaying = true;
                     this.videoSupport = true;
@@ -99,9 +127,12 @@ var VideoSetup = (function () {
     }
   };
 
+  /**
+   * Initialises the video-stream for both eyes
+   * and sets up an event-listener for resizing
+   */
   VideoSetup.prototype.init = function () {
     this.getVideoStream(this.videoleftcontainer, this.videorightcontainer);
-    this.resizeVideo();
 
     window.addEventListener('resize', (function () {
       if (this.resizeTimeout) {
@@ -111,7 +142,10 @@ var VideoSetup = (function () {
       this.resizeTimeout = window.setTimeout(this.resizeVideo.bind(this), 100);
     }).bind(this), false);
   };
-
+  
+  /**
+   * Shows the video and therefor the "reality"
+   */
   VideoSetup.prototype.show = function () {
     if (this.videoleft && this.videoright && this.videoSupport) {
       this.videoPlaying = true;
@@ -121,7 +155,10 @@ var VideoSetup = (function () {
       this.videoright.style.display = 'block';
     }
   };
-
+  
+  /**
+   * Hides the "reality"
+   */
   VideoSetup.prototype.hide = function () {
     if (this.videoleft && this.videoright && this.videoSupport) {
       this.videoPlaying = false;

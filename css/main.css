@@ -39,17 +39,6 @@ body, html {
     padding-top:75%; // ratio of 4/3
 }
 
-#webgl-container {
-    width:100%;
-    position:absolute;
-}
-
-#webgl-container:before {
-    content : '';
-    display:block;
-    padding-top:37.5%; // reatio of 8/3
-}
-
 #centerline {
     position:absolute;
     background-color:#000;

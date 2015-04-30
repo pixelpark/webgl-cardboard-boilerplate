@@ -1,87 +1,94 @@
-'use strict';
 
 
+// store scenes here so that this objects can be reached by every other script
 window.scenes = [];
 var ARWrapper = (function () {
+  'use strict';
+  /**
+   * A class/object to create 3D-Buttons that can be activated
+   * @returns {arwrapper_L5.ButtonFactory}
+   */
+  // @TODO: Do not declare this a object!!! with its own prototype..
+  function ButtonFactory() {
+  }
 
-  function ButtonFactory() {}
-  
   ButtonFactory.prototype.finishCreate = function (callback, virtualButtonMesh, arData) {
     virtualButtonMesh.arData = arData;
-    callback(virtualButtonMesh);
+    if (callback) {
+      callback(virtualButtonMesh);
+    }
   };
-  
+
   // REMOVE EVIL CALLBACK-HELL!
   // @TODO callback hell and some more defaults and duplicated function calls etc.
   ButtonFactory.prototype.create = function (config) {
-    config.callback = config.callback || function(){};
+    config.callback = config.callback || null;
     var arData = {
       baseColor: config.color,
       name: config.name,
       action: config.action
-    };
-    var count = 0;
+    },
+    count = 0,
+    virtualButtonGeometry = new THREE.PlaneGeometry(config.dimensions.x, config.dimensions.y, 1, 1),
+    virtualButtonMaterial = new THREE.MeshBasicMaterial({color: config.color}),
+    virtualButtonMesh = new THREE.Mesh(virtualButtonGeometry, virtualButtonMaterial);
     
-    var virtualButtonGeometry = new THREE.PlaneGeometry(config.dimensions.x, config.dimensions.y, 1, 1);
-    var virtualButtonMaterial = new THREE.MeshBasicMaterial({color: config.color});
-    
-    var virtualButtonMesh = new THREE.Mesh(virtualButtonGeometry, virtualButtonMaterial);
     virtualButtonMesh.position.x = config.position.x || 0;
     virtualButtonMesh.position.y = config.position.y || 0;
     virtualButtonMesh.position.z = config.position.z || 0;
     virtualButtonMesh.rotation.x = config.rotation.x || 0;
     virtualButtonMesh.rotation.y = config.rotation.y || 0;
     virtualButtonMesh.rotation.z = config.rotation.z || 0;
-    
+
     if (config.baseImagePath) {
       count++;
       THREE.ImageUtils.loadTexture(config.baseImagePath, undefined, (function (texture) {
         var baseTexture = texture;
         baseTexture.minFilter = THREE.NearestFilter;
         arData.baseTexture = baseTexture;
-        
+
         virtualButtonMaterial.map = baseTexture;
-        
-        
-        arData.deactivate =  (function () {
+
+
+        arData.deactivate = function () {
           this.material.color = new THREE.Color(this.arData.baseColor);
           this.material.map = this.arData.baseTexture;
           this.material.needsUpdate = true;
-        }).bind(virtualButtonMesh);
+        }.bind(virtualButtonMesh);
         if (!--count) {
           this.finishCreate(config.callback, virtualButtonMesh, arData);
         }
       }).bind(this),
-      (function () {
-        if (!--count) {
-          this.finishCreate(config.callback, virtualButtonMesh, arData);
-        }
-      }).bind(this));
+              (function () {
+                if (!--count) {
+                  this.finishCreate(config.callback, virtualButtonMesh, arData);
+                }
+              }).bind(this));
     }
-    
+
     if (config.activeImagePath) {
       count++;
       THREE.ImageUtils.loadTexture(config.activeImagePath, undefined, (function (texture) {
-        
+
         var activeTexture = texture;
         activeTexture.minFilter = THREE.NearestFilter;
         arData.activeTexture = activeTexture;
-        arData.activate =  (function () {
+        arData.activate = function () {
           this.material.color = new THREE.Color(0xff9999);
           this.material.map = this.arData.activeTexture;
           this.material.needsUpdate = true;
-        }).bind(virtualButtonMesh);
+        }.bind(virtualButtonMesh);
         if (!--count) {
           this.finishCreate(config.callback, virtualButtonMesh, arData);
         }
       }).bind(this),
-      (function (err) {
-        if (!--count) {
-          this.finishCreate(config.callback, virtualButtonMesh, arData);
-        }
-      }).bind(this));
+              (function () {
+                if (!--count) {
+                  this.finishCreate(config.callback, virtualButtonMesh, arData);
+                }
+              }).bind(this));
     }
-    
+
     if (!count) {
       this.finishCreate(config.callback, virtualButtonMesh, arData);
     }
@@ -89,10 +96,11 @@ var ARWrapper = (function () {
     return virtualButtonMesh;
   };
 
-  var focusableObjects = [];
-  var toggleObjects = [];
+  var focusableObjects = []; // objects that can be focused - most likely just the buttons
+  var toggleObjects = []; // objects that can be hidden or shown - most likely everything else than the buttons
 
   function ARWrapper(constants, divwebgl) {
+    var i = window.scenes.length - 1;
     Object.defineProperties(this, {
       "lookAtInterval": {
         value: 10,
@@ -128,37 +136,59 @@ var ARWrapper = (function () {
     this.buttonFactory = new ButtonFactory();
 
     this.scenes = [];
-    for (var i = window.scenes.length - 1; i >= 0; --i) {
+    for (i; i >= 0; --i) {
       this.scenes.push(new window.scenes[i]());
     }
   }
 
+  /**
+   * Show all objects that have been marked before
+   * @returns {undefined}
+   */
   ARWrapper.prototype.show = function () {
     this.toggleSpecifiedObjects(true);
   };
 
+  /**
+   * Hide all objects that have been marked beforehand
+   * @returns {undefined}
+   */
   ARWrapper.prototype.hide = function () {
     this.toggleSpecifiedObjects(false);
   };
 
+  /**
+   * Toggle show/hide-status of all objects that have been marked beforehand
+   * @param {type} visible
+   * @returns {undefined}
+   */
   ARWrapper.prototype.toggleSpecifiedObjects = function (visible) {
-    for (var i = toggleObjects.length - 1; i >= 0; --i) {
-      toggleObjects[i].traverse(function (object) {
-        object.visible = visible;
-      });
+    var i = toggleObjects.length - 1;
+    var setVisibility = function (object) {
+      object.visible = visible;
+    };
+    for (i; i >= 0; --i) {
+      toggleObjects[i].traverse(setVisibility);
     }
   };
 
+  /**
+   * Initialise the AR-Wrapper by adding some virtual buttons
+   * setup the scene and some light and initialized the scene-objects
+   * @returns {undefined}
+   */
   ARWrapper.prototype.init = function () {
-    var light;
+    var light,
+    i = this.scenes.length - 1,
+    current = null;
     light = new THREE.AmbientLight(0x444444);
     this.scene.add(light);
 
     //name, action, color, baseTexturePath, clickTexturePath, dimensions, position, rotation
     this.buttonFactory.create(
             {
-              name : 'ALLBUTTON',
-              action: constants.actions.makeAR,
+              name: 'ALLBUTTON',
+              action: this.constants.actions.makeAR,
               color: 0xcccccc,
               baseImagePath: 'images/buttons/ar.png',
               activeImagePath: 'images/buttons/ar_active.png',
@@ -175,63 +205,63 @@ var ARWrapper = (function () {
                 x: -Math.PI / 2,
                 z: Math.PI
               },
-              callback :(function (mesh) {
+              callback: (function (mesh) {
                 focusableObjects.push(mesh);
                 this.scene.add(mesh);
               }).bind(this)
             });
 
     this.buttonFactory.create({
-              name : 'VIRTUALBUTTON',
-              action: constants.actions.makeVR,
-              color: 0xcccccc,
-              baseImagePath: 'images/buttons/vr.png',
-              activeImagePath: 'images/buttons/vr_active.png',
-              dimensions: {
-                x: 10000,
-                y: 10000
-              },
-              position: {
-                x: 11000,
-                y: -20000,
-                z: 10000
-              },
-              rotation: {
-                x: -Math.PI / 2,
-                z: Math.PI
-              },
-              callback :(function (mesh) {
-                focusableObjects.push(mesh);
-                this.scene.add(mesh);
-              }).bind(this)
-            });
+      name: 'VIRTUALBUTTON',
+      action: this.constants.actions.makeVR,
+      color: 0xcccccc,
+      baseImagePath: 'images/buttons/vr.png',
+      activeImagePath: 'images/buttons/vr_active.png',
+      dimensions: {
+        x: 10000,
+        y: 10000
+      },
+      position: {
+        x: 11000,
+        y: -20000,
+        z: 10000
+      },
+      rotation: {
+        x: -Math.PI / 2,
+        z: Math.PI
+      },
+      callback: (function (mesh) {
+        focusableObjects.push(mesh);
+        this.scene.add(mesh);
+      }).bind(this)
+    });
 
     this.buttonFactory.create({
-              name : 'REALITYBUTTON',
-              action: constants.actions.makeReal,
-              color: 0xcccccc,
-              baseImagePath: 'images/buttons/real.png',
-              activeImagePath: 'images/buttons/real_active.png',
-              dimensions: {
-                x: 10000,
-                y: 10000
-              },
-              position: {
-                y: -20000,
-                z: 10000
-              },
-              rotation: {
-                x: -Math.PI / 2,
-                z: Math.PI
-              },
-              callback :(function (mesh) {
-                focusableObjects.push(mesh);
-                this.scene.add(mesh);
-              }).bind(this)
-            });
+      name: 'REALITYBUTTON',
+      action: this.constants.actions.makeReal,
+      color: 0xcccccc,
+      baseImagePath: 'images/buttons/real.png',
+      activeImagePath: 'images/buttons/real_active.png',
+      dimensions: {
+        x: 10000,
+        y: 10000
+      },
+      position: {
+        y: -20000,
+        z: 10000
+      },
+      rotation: {
+        x: -Math.PI / 2,
+        z: Math.PI
+      },
+      callback: (function (mesh) {
+        focusableObjects.push(mesh);
+        this.scene.add(mesh);
+      }).bind(this)
+    });
 
-    var current = null;
-    for (var i = this.scenes.length - 1; i >= 0; --i) {
+    
+    for (i; i >= 0; --i) {
       current = this.scenes[i];
       if (current.init) {
         current.init(this.scene, toggleObjects);
@@ -250,26 +280,35 @@ var ARWrapper = (function () {
     this.render();
   };
 
+  /**
+   * Resizes the renderer so that it fits to the screen and
+   * therefore the video-outputs
+   * @returns {undefined}
+   */
   ARWrapper.prototype.resizeRenderer = function () {
-    var screenWidth = window.innerWidth;
-    var screenHeight = window.innerHeight;
-    var screenHalfWidth = ((screenWidth / 2) | 0);
+    var screenWidth = window.innerWidth,
+    screenHeight = window.innerHeight,
+    //var screenHalfWidth = ((screenWidth / 2) | 0);
     // adjust margin so that we have a 4:3 ratio.
-    var verticalMargin = this.constants.verticalMargin;
+    verticalMargin = this.constants.verticalMargin;
 
     // the constant has to be inverted .... :(
     // and doubled because the the aspect is calculated for a single view
     this.camera.aspect = 2 * (1 / this.constants.aspect);
-    
+
     //this.camera.aspect = 1 / this.constants.aspect;
     this.camera.updateProjectionMatrix();
 
     this.divwebgl.style.top = verticalMargin + 'px';
     this.renderer.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
     this.effect.setSize(screenWidth, (screenHeight - (2 * verticalMargin)));
-   // this.effect.setSizeSingleView(screenHalfWidth, (screenHeight - (2 * verticalMargin)));
+    // this.effect.setSizeSingleView(screenHalfWidth, (screenHeight - (2 * verticalMargin)));
   };
 
+  /**
+   * Setup PC-controls or orientation-controls
+   * @returns {undefined}
+   */
   ARWrapper.prototype.setControls = function () {
     // Don't orbit around Sun. Look around from camera's position instead.
     var lCenter = new THREE.Vector3(
@@ -300,14 +339,25 @@ var ARWrapper = (function () {
     }
   };
 
+  /**
+   * Manages if one looks at an object that has some lookat-action
+   * @param {type} focusObject
+   * @param {type} focusableObjects
+   * @param {type} camera
+   * @returns {undefined}
+   */
   ARWrapper.prototype.lookatHandler = function (focusObject, focusableObjects, camera) {
+    var i = focusableObjects.length - 1;
     if (focusObject.arData) {
 
       // UNCHECK ALL OTHER focusables
-      for (var i = focusableObjects.length - 1; i >= 0; --i) {
-        var current = focusableObjects[i];
+      var current = null;
+      for (i; i >= 0; --i) {
+        current = focusableObjects[i];
         if ((current !== focusObject) && current.arData) {
           current.arData.deactivate();
+        } else {
+          focusObject.arData.activate();
         }
       }
       var detail = {
@@ -317,9 +367,7 @@ var ARWrapper = (function () {
         action: focusObject.arData.action || null
       };
 
-      this.focusObject.arData.activate();
-
-      var lookAtEvent = new CustomEvent('lookat', {
+      var lookAtEvent = new CustomEvent(focusObject.arData.action, {
         detail: detail
       });
       this.divwebgl.dispatchEvent(lookAtEvent);
@@ -327,8 +375,14 @@ var ARWrapper = (function () {
   };
 
 
-
+  /**
+   * Rendering loop
+   * will also invoke the render-function of every scene-object
+   * checks in some interval if one looks at something
+   * @returns {undefined}
+   */
   ARWrapper.prototype.render = function () {
+    var i = this.scenes.length - 1;
     requestAnimationFrame(this.render.bind(this));
 
     this.camera.updateProjectionMatrix();
@@ -340,22 +394,22 @@ var ARWrapper = (function () {
 
 
     var current = null;
-    for (var i = this.scenes.length - 1; i >= 0; --i) {
+    for (i; i >= 0; --i) {
       current = this.scenes[i];
       if (current.render) {
         current.render(lTimeSec);
       }
     }
 
-    this.lookAtCounter++;
-    if (!(this.lookAtCounter %= this.lookAtInterval)) {
+    this.lookAtCounter = (this.lookAtCounter + 1) % this.lookAtInterval;
+    if (this.lookAtCounter === 0) {
       // only determine focus if the interval-counter matches
       var prevFocus = this.focusObject;
       var newFocus = null;
       var vector = new THREE.Vector3(); // make this "global"? so that it is not created every time?!
       var focusX = 0.5; // center of screen
       var focusY = 0.5; // center of screen
-      vector.set((focusX) * 2 - 1, -(focusY) * 2 + 1, 0.5);
+      vector.set(focusX * 2 - 1, -focusY * 2 + 1, 0.5);
       vector.unproject(this.camera);
       this.raycaster.ray.set(this.camera.position, vector.sub(this.camera.position).normalize());
 
@@ -383,4 +437,4 @@ var ARWrapper = (function () {
   };
 
   return ARWrapper;
-})();
+}());

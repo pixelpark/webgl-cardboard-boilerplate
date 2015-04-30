@@ -20,114 +20,129 @@
     <div id="centerline"></div> 
 
     <script src="bower_components/screenfull/dist/screenfull.js"></script>
-    <!-- <script src="bower_components/threejs/build/three.min.js"></script>-->
+    <!-- <script src="bower_components/threejs/build/three.min.js"></script> to be evaluated-->
     <script src="js/three.min.js"></script>
     <script src="bower_components/threejs/examples/js/effects/StereoEffect.js"></script>
-    <!--<script src="js/StereoEffect.js"></script>-->
+    <!--<script src="js/StereoEffect.js"></script> to be evaluated-->
     <script src="js/DeviceOrientationControls.js"></script>
-    <!--<script src="bower_components/threejs/examples/js/controls/DeviceOrientationControls.js"></script>-->
+    <!--<script src="bower_components/threejs/examples/js/controls/DeviceOrientationControls.js"></script> to be evaluated-->
     <script src="js/navigateControl.js"></script>
     <script src="js/videosetup.js"></script>
     <script src="js/arwrapper.js"></script>
     <script src="js/solarsystem.js"></script>
     <!--<script src="js/testest.js"></script> uncomment to see another example-->
     <script>
-      var constants = (function () {
-        var constants = {};
-        var aspect = 3 / 4;
-        constants.__proto__ = null;
-        var actions = {};
-        actions.__proto__ = null;
-        Object.defineProperties(actions, {
-          'makeAR': {
-            value: 'makeAR',
-            enumerable: true
-          },
-          'makeVR': {
-            value: 'makeVR',
-            enumerable: true
-          },
-          'makeReal': {
-            value: 'makeReal',
-            enumerable: true
-          }
-        });
-        Object.defineProperties(constants, {
-          'actions': {
-            value: actions,
-            enumerable: true
-          },
-          'aspect': {
-            value: aspect,
-            enumerable: true
-          },
-          // adjust margin so that we have a 4:3 ratio.
-          // (height - 3/4halfwidth) / 2
-          'verticalMargin': {
-            enumerable: true,
-            get: function () {
-              return (window.innerHeight - ((window.innerWidth / 2) * aspect)) / 2;
-            }
-          },
-          'videoWidth': {
-            value: 640,
-            enumerable: true
-          },
-          'videoHeight': {
-            enumerable: true,
-            get: function () {
-              return this.videoWidth * this.aspect;
-            }
-          }
-        });
-        return constants;
-      })();
-
-
-      clickActions = {};
-      clickActions[constants.actions.makeAR] = function (arWrapper, videoSetup) {
-        arWrapper.show();
-        videoSetup.show();
-      };
-
-      clickActions[constants.actions.makeVR] = function (arWrapper, videoSetup) {
-        arWrapper.show();
-        videoSetup.hide();
-      };
-
-      clickActions[constants.actions.makeReal] = function (arWrapper, videoSetup) {
-        arWrapper.hide();
-        videoSetup.show();
-      };
-
-      function addFullscreenButton() {
-        if (screenfull.enabled) {
-          var fsButton = document.createElement('button');
-          fsButton.textContent = 'fullscreen';
-          fsButton.style.maxHeight = constants.verticalMargin + 'px';
-
-          fsButton.id = 'fullscreen-button';
-          fsButton.addEventListener('click', function () {
-            screenfull.request(document.body);
-          });
-
-          window.addEventListener(screenfull.raw.fullscreenchange, (function () {
-            if (screenfull.isFullscreen) {
-              fsButton.style.display = 'none';
-            } else {
-              fsButton.style.display = 'inline-block';
-            }
-          }).bind(fsButton), false);
-
-          document.body.appendChild(fsButton);
-        }
-      }
-
       /**
        * Initialises objects and event-listners
        * @returns {undefined}
        */
-      function init() {
+      (function () {
+        /*
+         * Initialise some constants
+         * these can be used for configuration before starting
+         * the app 
+         */
+        var constants = (function () {
+          var constants = {};
+          var aspect = 3 / 4;
+          constants.__proto__ = null;
+          var actions = {};
+          actions.__proto__ = null;
+          Object.defineProperties(actions, {
+            'makeAR': {
+              value: 'action_makeAR',
+              enumerable: true
+            },
+            'makeVR': {
+              value: 'action_makeVR',
+              enumerable: true
+            },
+            'makeReal': {
+              value: 'action_makeReal',
+              enumerable: true
+            }
+          });
+          Object.defineProperties(constants, {
+            'actions': {
+              value: actions,
+              enumerable: true
+            },
+            'aspect': {
+              value: aspect,
+              enumerable: true
+            },
+            // adjust margin so that we have a 4:3 ratio.
+            // (height - 3/4halfwidth) / 2
+            'verticalMargin': {
+              enumerable: true,
+              get: function () {
+                return (window.innerHeight - ((window.innerWidth / 2) * aspect)) / 2;
+              }
+            },
+            'videoWidth': {
+              value: 640,
+              enumerable: true
+            },
+            'videoHeight': {
+              enumerable: true,
+              get: function () {
+                return this.videoWidth * this.aspect;
+              }
+            }
+          });
+          return constants;
+        })();
+
+        /*
+         * Define handlers for the AR-action
+         */
+        //so show reality and virtual parts
+        var clickActions = {};
+        clickActions[constants.actions.makeAR] = function (arWrapper, videoSetup) {
+          arWrapper.show();
+          videoSetup.show();
+        };
+
+        //just show virtual parts with a black background
+        clickActions[constants.actions.makeVR] = function (arWrapper, videoSetup) {
+          arWrapper.show();
+          videoSetup.hide();
+        };
+
+        //just show the video and hide the virtual parts
+        clickActions[constants.actions.makeReal] = function (arWrapper, videoSetup) {
+          arWrapper.hide();
+          videoSetup.show();
+        };
+
+        /**
+         * Add a fullscreen-button to the app so that
+         * a user can enlarge the AR to mostly fullscreen
+         * @returns {undefined}
+         */
+        function addFullscreenButton() {
+          if (screenfull.enabled) {
+            var fsButton = document.createElement('button');
+            fsButton.textContent = 'fullscreen';
+            fsButton.style.maxHeight = constants.verticalMargin + 'px';
+
+            fsButton.id = 'fullscreen-button';
+            fsButton.addEventListener('click', function () {
+              screenfull.request(document.body);
+            });
+
+            window.addEventListener(screenfull.raw.fullscreenchange, (function () {
+              if (screenfull.isFullscreen) {
+                fsButton.style.display = 'none';
+              } else {
+                fsButton.style.display = 'inline-block';
+              }
+            }).bind(fsButton), false);
+
+            document.body.appendChild(fsButton);
+          }
+        }
+
         var divwebgl = document.getElementById('webgl');
         var videoleft = document.getElementById("leftvideo");
         var videoright = document.getElementById("rightvideo");
@@ -135,11 +150,15 @@
         var arWrapper = new ARWrapper(constants, divwebgl);
         var videoSetup = new VideoSetup(constants, videoleft, videoright);
 
-        divwebgl.addEventListener('lookat', function lookAtHandler(e) {
-          if (e.detail.action && clickActions[e.detail.action]) {
-            clickActions[e.detail.action](arWrapper, videoSetup);
-          }
-        }, false);
+
+        for (var action in clickActions) {
+          divwebgl.addEventListener(action, (function (arWrapper, videoSetup, action) {
+            return function () {
+              clickActions[action](arWrapper, videoSetup);
+            };
+          })(arWrapper, videoSetup, action), false);
+        }
+
         divwebgl.addEventListener('lookaway', function lookAwayHandler(e) {
           console.log("You looked away from something.");
         }, false);
@@ -151,13 +170,7 @@
         } else {
           addFullscreenButton();
         }
-      }
-
-
-
-      init();
-
+      })();
     </script>
-
   </body>
 </html>
